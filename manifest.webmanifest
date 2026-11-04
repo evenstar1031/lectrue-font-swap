@@ -1,0 +1,15 @@
+{
+  "name": "강의자료 글꼴 바꾸기",
+  "short_name": "글꼴 바꾸기",
+  "description": "PDF·PPTX·DOCX 강의자료의 글꼴을 원하는 글꼴로 바꾸고 OCR로 검색되게 만듭니다. 기기 안에서 처리.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f1ea",
+  "theme_color": "#27457a",
+  "lang": "ko",
+  "icons": [
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
