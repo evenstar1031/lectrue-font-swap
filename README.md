@@ -13,20 +13,18 @@ PDF · PPTX · DOCX 강의자료의 글꼴을 **내가 고른 글꼴**로 바꿔
 | 아이패드 | Safari로 주소 열기 → 공유 → **홈 화면에 추가** (앱처럼 쓰고 글꼴도 안 지워져요) |
 | 윈도우 노트북 | Edge/Chrome으로 같은 주소 |
 
-## 처음 한 번: 글꼴 고르기
+## 글꼴
 
-**글꼴 파일 고르기**를 눌러 TTF/OTF 파일 4개를 한 번에 고르면 이름을 보고 자리를 알아서 정해요.
+기본 글꼴 4개가 사이트에 들어 있어서 **어느 기기에서 열든 따로 설정할 필요가 없어요.** 처음 열 때 한 번 받아 두고(약 23MB) 다음부터는 저장된 걸 써요.
 
-| 자리 | 예 |
+| 자리 | 기본 글꼴 |
 |---|---|
 | 바탕 보통 (기본 본문) | KoPubWorld 바탕체 Pro Medium |
 | 바탕 굵게 | KoPubWorld 바탕체 Pro Bold |
 | 고딕 보통 | Apple SD Gothic Neo Medium |
 | 고딕 굵게 | Apple SD Gothic Neo SemiBold |
 
-- 칸을 누르면 그 자리만 다른 글꼴로 바꿀 수 있어요.
-- 글꼴은 **그 기기 브라우저에만** 저장돼요(이 저장소에는 글꼴 파일이 없어요 — 글꼴 라이선스 때문). 아이패드와 노트북에서 각각 한 번씩 골라 주세요.
-- 아이패드는 글꼴 파일을 파일 앱(iCloud Drive 등)에 넣어 두고 고르면 돼요.
+다른 글꼴을 쓰고 싶으면 칸을 눌러 TTF/OTF 파일을 고르면 돼요(그 기기에만 저장). **기본 글꼴로 되돌리기**로 원래대로.
 
 ## 쓰는 법
 
@@ -67,6 +65,7 @@ engine/office.js             PPTX/DOCX 글꼴 이름 교체
 engine/ocr-format.js         Tesseract 결과 정리
 vendor/                      MuPDF.js, HarfBuzz, Tesseract.js, JSZip
 ocr/lang/                    한국어·영어 OCR 데이터 (tessdata best_int)
+fonts/                       기본 글꼴 4개
 sw.js, manifest.webmanifest  홈 화면 앱 · 오프라인
 ```
 

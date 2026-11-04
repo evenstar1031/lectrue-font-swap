@@ -52,24 +52,51 @@ const idb = {
     });
   },
   async put(k, v) { const db = await this.open(); return new Promise((res, rej) => { const tx = db.transaction('fonts', 'readwrite'); tx.objectStore('fonts').put(v, k); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); },
+  async del(k) { const db = await this.open(); return new Promise((res, rej) => { const tx = db.transaction('fonts', 'readwrite'); tx.objectStore('fonts').delete(k); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); },
   async get(k) { const db = await this.open(); return new Promise((res, rej) => { const r = db.transaction('fonts').objectStore('fonts').get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); },
 };
 
-const fonts = {}; // slot → {fileName, bytes(Uint8Array), meta}
+const fonts = {}; // slot → {fileName, bytes(Uint8Array), meta, builtin}
 let fontsSaved = true;
+// 사이트에 들어 있는 기본 글꼴 — 어느 기기에서 열어도 따로 고를 필요 없음
+const DEFAULT_FONTS = {
+  bR: 'fonts/KoPubWorld_Batang_Pro_Medium.otf',
+  bB: 'fonts/KoPubWorld_Batang_Pro_Bold.otf',
+  gR: 'fonts/AppleSDGothicNeo-Medium.ttf',
+  gB: 'fonts/AppleSDGothicNeo-SemiBold.ttf',
+};
+let fontsLoading = false;
+let fontsReady = Promise.resolve();
+async function loadDefaultFonts() {
+  const need = SLOTS.filter((s) => !fonts[s]);
+  if (!need.length) return;
+  fontsLoading = true;
+  renderSlots();
+  const failed = [];
+  await Promise.all(need.map(async (s) => {
+    try {
+      const r = await fetch(DEFAULT_FONTS[s]);
+      if (!r.ok) throw new Error(r.status);
+      const bytes = new Uint8Array(await r.arrayBuffer());
+      if (!fonts[s]) fonts[s] = { fileName: DEFAULT_FONTS[s].split('/').pop(), bytes, meta: readFontMeta(bytes), builtin: true };
+    } catch (e) { failed.push(s); }
+  }));
+  fontsLoading = false;
+  if (failed.length) toast('기본 글꼴 일부를 받지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.', 5000);
+}
 
 async function loadSavedFonts() {
   for (const s of SLOTS) {
     try {
       const v = await idb.get(s);
-      if (v && v.bytes) fonts[s] = { fileName: v.fileName, bytes: new Uint8Array(v.bytes), meta: readFontMeta(new Uint8Array(v.bytes)) };
+      if (v && v.bytes) fonts[s] = { fileName: v.fileName, bytes: new Uint8Array(v.bytes), meta: readFontMeta(new Uint8Array(v.bytes)), builtin: false };
     } catch (e) { fontsSaved = false; }
   }
 }
 
 async function setFont(slot, file, bytes) {
   const meta = readFontMeta(bytes);
-  fonts[slot] = { fileName: file.name, bytes, meta };
+  fonts[slot] = { fileName: file.name, bytes, meta, builtin: false };
   try { await idb.put(slot, { fileName: file.name, bytes: bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) }); }
   catch (e) { fontsSaved = false; }
 }
@@ -96,21 +123,29 @@ async function renderSlots() {
     const f = fonts[s];
     const b = el('button', { class: 'slot' + (f ? '' : ' empty'), type: 'button', 'data-slot': s, 'aria-label': `${SLOT_TEXT[s]} 글꼴 ${f ? f.meta.full : '없음'} — 눌러서 바꾸기` },
       el('div', { class: 'lab' }, SLOT_TEXT[s], s === 'bR' ? el('span', { class: 'star', title: '기본 본문' }, '기본 본문') : null),
-      el('div', { class: 'sample' }, f ? SAMPLE : '눌러서 글꼴 고르기'),
-      el('div', { class: 'fname' }, f ? `${f.meta.koFamily || f.meta.full}` : (s === 'bR' ? '꼭 필요해요' : '없으면 다른 칸 글꼴로 대신')));
+      el('div', { class: 'sample' }, f ? SAMPLE : fontsLoading ? '기본 글꼴 받는 중…' : '눌러서 글꼴 고르기'),
+      el('div', { class: 'fname' }, f ? `${f.meta.koFamily || f.meta.full}${f.builtin ? ' · 기본' : ' · 내가 고름'}` : ''));
     b.addEventListener('click', () => { pendingSlot = s; $('#slotInput').click(); });
     box.append(b);
     if (f) previewFace(s).then((fam) => { if (fam) b.querySelector('.sample').style.fontFamily = `"${fam}", sans-serif`; });
   }
-  const n = SLOTS.filter((s) => fonts[s]).length;
-  $('#fontSub').textContent = n === 4
-    ? (fontsSaved ? '이 기기에 저장돼 있어요. 다음부터는 바로 파일만 넣으면 돼요.' : '이 브라우저는 글꼴을 저장하지 못해요(개인 정보 보호 모드?). 이번에만 쓰여요.')
-    : n ? `${4 - n}칸이 비어 있어요. 비어 있으면 같은 계열의 다른 굵기 → 다른 계열 순서로 대신 써요.` : '처음 한 번만 글꼴 파일을 골라 주세요(TTF/OTF). 이 기기에만 저장돼요.';
-  $('#drop').classList.toggle('disabled', !fonts.bR && !fonts.gR && !fonts.bB && !fonts.gB);
+  const mine = SLOTS.filter((s) => fonts[s] && !fonts[s].builtin).length;
+  $('#fontSub').textContent = fontsLoading ? '기본 글꼴을 받는 중이에요(처음 한 번만). 그동안 파일을 넣어 둬도 돼요.'
+    : mine ? `기본 글꼴에 더해 ${mine}칸은 내가 고른 글꼴(이 기기에만 저장)을 써요.`
+    : '기본 글꼴 4개가 들어 있어서 바로 쓰면 돼요. 칸을 누르면 다른 글꼴로 바꿀 수 있어요.';
+  $('#resetFonts').hidden = !mine;
   engineFontsDirty = true;
 }
 
 let pendingSlot = null;
+$('#resetFonts').addEventListener('click', async () => {
+  for (const s of SLOTS) {
+    if (fonts[s] && !fonts[s].builtin) { delete fonts[s]; delete faceLoaded[s]; try { await idb.del(s); } catch (e) { /* */ } }
+  }
+  fontsReady = loadDefaultFonts().then(renderSlots);
+  await fontsReady;
+  toast('기본 글꼴로 되돌렸어요');
+});
 $('#pickFonts').addEventListener('click', () => $('#fontInput').click());
 $('#fontInput').addEventListener('change', async (e) => {
   const files = [...e.target.files];
@@ -281,7 +316,6 @@ function addFiles(list) {
   const skipped = list.length - files.length;
   if (skipped) toast(`${skipped}개는 PDF/PPTX/DOCX가 아니라서 뺐어요`);
   if (!files.length) return;
-  if (!SLOTS.some((s) => fonts[s])) { toast('먼저 쓸 글꼴을 골라 주세요'); return; }
   for (const f of files) {
     const it = { id: 'f' + ++fileSeq, file: f, kind: kindOf(f.name), name: f.name.normalize('NFC'), state: 'wait', overrides: {} };
     items.push(it);
@@ -298,8 +332,10 @@ async function pump() {
   busy = true;
   let wake = null;
   try { if (navigator.wakeLock) wake = await navigator.wakeLock.request('screen'); } catch (e) { wake = null; }
+  await fontsReady;
   while (queue.length) {
     const it = queue.shift();
+    if (!SLOTS.some((s) => fonts[s])) { it.state = 'error'; it.error = '글꼴을 불러오지 못했어요. 새로고침해 주세요.'; const f = renderItem(it); it.card.replaceWith(f); it.card = f; continue; }
     await processItem(it);
   }
   busy = false;
@@ -766,8 +802,8 @@ $('#vSearch').addEventListener('submit', (e) => { e.preventDefault(); $('#vQuery
 applySettingsUI();
 (async () => {
   try { await loadSavedFonts(); } catch (e) { fontsSaved = false; }
-  await renderSlots();
-  if (!SLOTS.some((s) => fonts[s])) $('#fontCard').scrollIntoView({ block: 'start' });
+  fontsReady = loadDefaultFonts().then(renderSlots);
+  await fontsReady;
 })();
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => {});

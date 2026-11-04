@@ -1,5 +1,5 @@
 // 오프라인에서도 열리도록: 엔진·OCR 파일은 캐시 우선, 화면 파일은 네트워크 우선
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL = `shell-${VERSION}`;
 const HEAVY = `heavy-${VERSION}`;
 const SHELL_FILES = ['./', 'index.html', 'app.js', 'manifest.webmanifest', 'icon-180.png',
@@ -17,7 +17,7 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
-  const heavy = /\/(vendor|ocr)\//.test(url.pathname);
+  const heavy = /\/(vendor|ocr|fonts)\//.test(url.pathname);
   if (heavy) {
     e.respondWith(caches.open(HEAVY).then(async (c) => {
       const hit = await c.match(req);

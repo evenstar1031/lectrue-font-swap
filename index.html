@@ -214,17 +214,18 @@ footer ul { padding-left: 18px; margin: 4px 0; }
     <div class="fontbar">
       <div>
         <h2 id="fontTitle">쓸 글꼴</h2>
-        <p class="sub" id="fontSub">처음 한 번만 글꼴 파일을 골라 주세요. 이 기기에 저장돼요.</p>
+        <p class="sub" id="fontSub">기본 글꼴 4개가 들어 있어서 바로 쓰면 돼요.</p>
       </div>
       <div class="row">
         <button class="btn" id="pickFonts" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V5h16v2M9 19h6M12 5v14"/></svg>
-          글꼴 파일 고르기
+          다른 글꼴로 바꾸기
         </button>
+        <button class="btn small" id="resetFonts" type="button" hidden>기본 글꼴로 되돌리기</button>
       </div>
     </div>
     <div class="slots" id="slots"></div>
-    <p class="note">고딕 계열(맑은 고딕, 돋움, Arial…)은 <b>고딕</b>으로, 바탕·명조 계열(바탕, 신명조, Times…)은 <b>바탕</b>으로 바꿔요. 어느 쪽인지 모르는 글꼴은 <b>바탕 보통</b>(기본 본문)으로 바꿔요. 칸을 눌러 하나씩 바꿀 수도 있어요.</p>
+    <p class="note">고딕 계열(맑은 고딕, 돋움, Arial…)은 <b>고딕</b>으로, 바탕·명조 계열(바탕, 신명조, Times…)은 <b>바탕</b>으로 바꿔요. 어느 쪽인지 모르는 글꼴은 <b>바탕 보통</b>(기본 본문)으로 바꿔요. 칸을 누르면 그 칸만 다른 글꼴로 바꿀 수 있어요.</p>
     <input type="file" id="fontInput" multiple hidden>
     <input type="file" id="slotInput" hidden>
   </section>
@@ -286,7 +287,7 @@ footer ul { padding-left: 18px; margin: 4px 0; }
     <ul>
       <li>글자 위치·크기·색·순서는 원본 그대로 두고 글꼴만 바꿔요. 새 글꼴에 없는 글자(일부 기호 등)는 원래 글꼴로 남겨요.</li>
       <li>그림 안에 그려진 글자는 글꼴을 바꿀 수 없어요(그림이니까요). 대신 OCR로 검색만 되게 해요.</li>
-      <li>글꼴 파일은 이 사이트에 올라가 있지 않아요. 각 기기에서 처음 한 번 골라 주면 그 기기 브라우저에만 저장돼요.</li>
+      <li>기본 글꼴(KoPubWorld 바탕체 Pro Medium·Bold, Apple SD Gothic Neo Medium·SemiBold)은 사이트에 들어 있어서 어느 기기에서든 따로 고를 필요가 없어요. 처음 한 번 받아 두고(약 23MB) 다음부터는 저장된 걸 써요.</li>
     </ul>
     <p style="margin-top:14px">엔진: MuPDF (AGPL), HarfBuzz, Tesseract. 처리는 모두 이 기기 안에서 일어나요.</p>
   </footer>
