@@ -218,7 +218,7 @@ const replies = new Map();
 const progressHandlers = new Map();
 function getEngine() {
   if (engine) return engine;
-  engine = new Worker(new URL('./engine/worker.js', import.meta.url), { type: 'module' });
+  engine = new Worker(new URL('./engine/worker.js?v=3', import.meta.url), { type: 'module' });
   engine.onmessage = (ev) => {
     const m = ev.data;
     if (m.type === 'reply') { const r = replies.get(m.rid); replies.delete(m.rid); if (r) (m.ok ? r.res(m.data) : r.rej(new Error(m.error))); }
@@ -806,5 +806,5 @@ applySettingsUI();
   await fontsReady;
 })();
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((r) => r.update()).catch(() => {});
 }
